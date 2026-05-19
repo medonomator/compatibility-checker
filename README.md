@@ -2,9 +2,10 @@
 
 > Schema version compatibility pipeline for platform teams
 
-Lab project. The mentor opens issues, each ships in one PR. Domain logic
-(source / transform / sink, polling, schema diff) arrives in later
-issues - this commit is the dev loop only.
+Lab project. The mentor opens issues, each ships in one PR. Domain
+logic (source / transform / sink, polling, schema diff) arrives one
+issue at a time - this PR introduces the Pipeline contract and the
+first slice of versioned schema compatibility.
 
 ## Requirements
 
@@ -24,10 +25,62 @@ npm run typecheck  # tsc --noEmit
 ## Layout
 
 ```
-src/        production code
-tests/      vitest specs
-dist/       build output (gitignored)
+src/
+  cli.ts          thin CLI entrypoint
+  banner.ts       readiness string
+  index.ts        public API barrel
+  pipeline/
+    contract.ts   Source / Transform / Sink interfaces
+    compatibility.ts  versioned schema types + compareSchemas
+    index.ts      pipeline barrel
+tests/            vitest specs
 ```
+
+`dist/` and `coverage/` are build artifacts and are not committed to
+the repository - both are listed in `.gitignore`.
+
+## Pipeline contract
+
+The pipeline has three boundaries. Each stage owns one thing and is
+free to evolve independently as long as the envelope shape holds.
+
+```
+Source  -- Envelope<T> -->  Transform  -- Envelope<U> -->  Sink
+```
+
+- **Source** produces ordered `Envelope<T>` and owns the cursor.
+  `next()` returns `null` when the source has nothing more to emit.
+  The cursor is what later issues use to add replay and recovery
+  without touching transform or sink.
+- **Transform** is a pure step from `Envelope<I>` to `Envelope<O>`.
+  It forwards `cursor` and `metadata` unchanged so ordering and
+  context survive across stages.
+- **Sink** consumes envelopes and is responsible for being idempotent
+  with respect to the cursor it sees. Re-delivery of the same cursor
+  must not produce a duplicate effect downstream.
+
+`Envelope<T>` carries the payload plus a `cursor` and a small string
+map of `metadata` for stage-agnostic context (schema id, source
+identity). Cursor lives in the source so a single source failure can
+not corrupt downstream offsets.
+
+## Schema compatibility
+
+`compareSchemas(prev, next)` is a pure function. It does no I/O and
+no normalization beyond what the types require, so it can run in any
+stage or in tests without setup.
+
+```typescript
+import { compareSchemas, type SchemaSnapshot } from 'compatibility-checker';
+
+const result = compareSchemas(prevSnapshot, nextSnapshot);
+// { status: 'compatible' }
+// { status: 'incompatible', breakingChanges: [...] }
+// { status: 'unknown', reason: '...' }
+```
+
+The result is open for extension: more `BreakingChangeKind` values
+and optional fields can be added without breaking existing consumers.
 
 ## How to work on this repo
 

@@ -1,15 +1,7 @@
 /**
- * Entry point. Prints a one-line readiness banner and exits 0.
- *
- * Kept deliberately empty of domain logic: this task is the dev loop,
- * not the pipeline. Subsequent issues plug source/transform/sink into
- * here.
+ * Public API barrel. Consumers import from here; the CLI lives in
+ * `src/cli.ts`, the domain in `src/pipeline`.
  */
 
-export function banner(): string {
-  return 'compatibility-checker ready';
-}
-
-if (require.main === module) {
-  console.log(banner());
-}
+export { banner } from './banner';
+export * from './pipeline';
