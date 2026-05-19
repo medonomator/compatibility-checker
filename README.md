@@ -64,6 +64,25 @@ map of `metadata` for stage-agnostic context (schema id, source
 identity). Cursor lives in the source so a single source failure can
 not corrupt downstream offsets.
 
+## Polling source and cursor semantics
+
+`SchemaSnapshotSource` is a polling `Source` over a `SnapshotReader`. The
+source owns the cursor and emits `Envelope<SchemaSnapshot>` in offset
+order. Cursor scheme is `offset:N` where `N` is the number of items the
+caller has already acknowledged.
+
+- **Replay.** Pass `initialCursor: { value: "offset:K", ... }` to resume
+  after a restart. The source skips the first `K` items and never
+  re-emits them, so a sink that already wrote `0..K-1` will not see them
+  again.
+- **Recovery.** If the underlying reader throws, the source does not
+  advance the cursor and does not turn the error into a successful
+  no-op. A subsequent `next()` call retries the same offset, so a
+  transient read failure converges as soon as the reader heals.
+
+`ArraySnapshotReader` is the in-memory reader used by tests and CLI
+demos. HTTP and file readers slot in by implementing `SnapshotReader`.
+
 ## Schema compatibility
 
 `compareSchemas(prev, next)` is a pure function. It does no I/O and
