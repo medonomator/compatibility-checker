@@ -1,22 +1,41 @@
 # compatibility-checker
 
-> schema-version-compatibility-pipeline
+> Schema version compatibility pipeline for platform teams
 
-## О проекте
+Lab project. The mentor opens issues, each ships in one PR. Domain logic
+(source / transform / sink, polling, schema diff) arrives in later
+issues - this commit is the dev loop only.
 
-Учебный проект на typescript. Цель — пройти путь от пустого репо до работающей системы через серию задач, которые наставник ставит в issues.
+## Requirements
 
-## Как работать
+- Node.js >= 20.10
 
-1. Открой issue с очередной задачей и прочитай критерии приёмки.
-2. Создай feature-ветку, реализуй, открой PR в `main`.
-3. Дождись ревью наставника - он закрывает PR и ставит следующую задачу.
+## Quick start
 
-## Запуск
+```bash
+npm install
+npm run dev        # prints "compatibility-checker ready" and exits 0
+npm test           # runs the vitest suite
+npm run build      # emits dist/
+npm run lint       # ESLint, fails on any warning
+npm run typecheck  # tsc --noEmit
+```
 
-_Инструкции появятся после первой задачи (project setup)._
+## Layout
 
-## Концепции, которые отрабатываются
+```
+src/        production code
+tests/      vitest specs
+dist/       build output (gitignored)
+```
+
+## How to work on this repo
+
+1. Open the next issue, read the acceptance criteria.
+2. Create a feature branch off `main`, ship the change, open a PR.
+3. The mentor reviews; on merge the next issue appears.
+
+## Concepts in scope
 
 - [Репликация данных](https://mind-forge.ru/lesson/dist-11-replication)
 - [Упорядочивание событий](https://mind-forge.ru/lesson/dist-06-ordering)
