@@ -45,6 +45,21 @@ export interface CompatResult {
   readonly breakingChanges?: readonly BreakingChange[];
 }
 
+/**
+ * Fail-closed schema comparison.
+ *
+ * The function returns `unknown` for any input it cannot reduce to a
+ * confident verdict:
+ *   - input that does not satisfy the SchemaSnapshot shape
+ *   - id mismatch between snapshots
+ *   - a throw from the diff step (e.g. malformed field data that slipped
+ *     past the structural guard)
+ *
+ * A reachable code path must never return `compatible` for something
+ * the pipeline could not actually verify - downstream sinks rely on
+ * `unknown` being a deliberate signal, not a stand-in for "looked OK
+ * until it blew up".
+ */
 export function compareSchemas(prev: unknown, next: unknown): CompatResult {
   if (!isSchemaSnapshot(prev) || !isSchemaSnapshot(next)) {
     return { status: 'unknown', reason: 'input is not a SchemaSnapshot' };
@@ -52,7 +67,12 @@ export function compareSchemas(prev: unknown, next: unknown): CompatResult {
   if (prev.id !== next.id) {
     return { status: 'unknown', reason: 'schema id mismatch' };
   }
-  return diff(prev, next);
+  try {
+    return diff(prev, next);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { status: 'unknown', reason: `diff failed: ${message}` };
+  }
 }
 
 function isSchemaSnapshot(value: unknown): value is SchemaSnapshot {

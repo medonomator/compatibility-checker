@@ -101,6 +101,14 @@ const result = compareSchemas(prevSnapshot, nextSnapshot);
 The result is open for extension: more `BreakingChangeKind` values
 and optional fields can be added without breaking existing consumers.
 
+`compareSchemas` is **fail-closed**: any input it cannot reduce to a
+confident verdict comes back as `unknown` with a `reason`. That covers
+malformed input that does not match the `SchemaSnapshot` shape, an `id`
+mismatch between snapshots, and an unexpected throw inside the diff
+step (e.g. a field row that slipped past the structural guard). The
+sink treats `unknown` as a deliberate "needs manual look" signal, not
+as a soft alias for `compatible`.
+
 ## How to work on this repo
 
 1. Open the next issue, read the acceptance criteria.
