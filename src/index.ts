@@ -1,6 +1,15 @@
-const state = 'ready';
+/**
+ * Entry point. Prints a one-line readiness banner and exits 0.
+ *
+ * Kept deliberately empty of domain logic: this task is the dev loop,
+ * not the pipeline. Subsequent issues plug source/transform/sink into
+ * here.
+ */
 
-console.log(state);
+export function banner(): string {
+  return 'compatibility-checker ready';
+}
 
-// TODO: см. Tasks в README.md и начни с contracts для source, transform, sink.
-// TODO: затем реализуй polling source с retry и recovery по cursor.
+if (require.main === module) {
+  console.log(banner());
+}

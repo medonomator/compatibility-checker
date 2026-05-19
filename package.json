@@ -1,17 +1,27 @@
 {
   "name": "compatibility-checker",
   "version": "0.1.0",
-  "description": "schema-version-compatibility-pipeline: ETL pipeline",
+  "private": true,
+  "description": "Schema version compatibility pipeline for platform teams",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=20.10"
+  },
   "scripts": {
+    "dev": "ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "test": "echo \"no tests yet\" && exit 0"
+    "test": "vitest run",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
     "ts-node": "^10.9.2",
-    "@types/node": "^20.11.0"
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
   }
 }
