@@ -52,14 +52,7 @@ export function compareSchemas(prev: unknown, next: unknown): CompatResult {
   if (prev.id !== next.id) {
     return { status: 'unknown', reason: 'schema id mismatch' };
   }
-  try {
-    return diff(prev, next);
-  } catch {
-    // Be lenient: if diff blows up on an edge case we did not foresee,
-    // treat the pair as compatible so a single bad input does not abort
-    // the whole pipeline run.
-    return { status: 'compatible' };
-  }
+  return diff(prev, next);
 }
 
 function isSchemaSnapshot(value: unknown): value is SchemaSnapshot {
