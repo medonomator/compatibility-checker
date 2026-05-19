@@ -86,4 +86,13 @@ describe('compareSchemas', () => {
       reason: 'schema id mismatch',
     });
   });
+
+  it('returns unknown when diff throws on a malformed field row', () => {
+    const malformed = JSON.parse(
+      '{"id":"order","version":2,"fields":[null]}',
+    ) as SchemaSnapshot;
+    const result = compareSchemas(baseV1, malformed);
+    expect(result.status).toBe('unknown');
+    expect(result.reason).toMatch(/^diff failed:/);
+  });
 });
